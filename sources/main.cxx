@@ -105,8 +105,8 @@ int32_t main() {
         println("ID:             {}", properties.deviceID);
         println("name:           {}", (const char*)properties.deviceName);
         println("type:           {}", fmt_vk(properties.deviceType));
-        println("API version:    {}", api_version(properties.apiVersion));
-        println("driver version: {}", version(properties.driverVersion));
+        println("API version:    {}", fmt_vk_api_version(properties.apiVersion));
+        println("driver version: {}", fmt_vk_version(properties.driverVersion));
         println("vendor ID:      {}", properties.vendorID);
     }
     uint32_t physical_device_index = 0;

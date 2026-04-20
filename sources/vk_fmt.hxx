@@ -13,7 +13,7 @@ struct ApiVersion {
   public:
     uint32_t value;
 };
-static inline ApiVersion api_version(uint32_t value) {
+static inline ApiVersion fmt_vk_api_version(uint32_t value) {
     return {value};
 }
 
@@ -21,7 +21,7 @@ struct Version {
   public:
     uint32_t value;
 };
-static inline Version version(uint32_t value) {
+static inline Version fmt_vk_version(uint32_t value) {
     return {value};
 }
 
