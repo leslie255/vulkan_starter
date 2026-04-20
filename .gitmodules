@@ -1,0 +1,15 @@
+[submodule "libraries/glm"]
+	path = libraries/glm
+	url = https://github.com/g-truc/glm.git
+[submodule "libraries/glfw"]
+	path = libraries/glfw
+	url = https://github.com/glfw/glfw.git
+[submodule "libraries/fastgltf"]
+	path = libraries/fastgltf
+	url = https://github.com/spnda/fastgltf.git
+[submodule "libraries/VulkanMemoryAllocator"]
+	path = libraries/VulkanMemoryAllocator
+	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
+[submodule "libraries/volk"]
+	path = libraries/volk
+	url = https://github.com/zeux/volk.git
