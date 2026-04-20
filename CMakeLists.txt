@@ -24,7 +24,10 @@ set(SOURCES
 add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Global flags.
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O${OPT_LEVEL} -g -fno-exceptions")
+add_compile_options("-O${OPT_LEVEL}")
+add_compile_options("-g")
+add_compile_options("-fno-exceptions")
+add_compile_options("-fmacro-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}/=")
 
 # Project-local flags.
 target_compile_options(${PROJECT_NAME} PRIVATE
@@ -41,6 +44,9 @@ target_compile_definitions(${PROJECT_NAME} PRIVATE GLFW_INCLUDE_VULKAN)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
 # === GLM === #
+set(GLM_ENABLE_CXX_20 ON)
+set(GLM_ENABLE_LANG_EXTENSIONS ON)
+set(GLM_ENABLE_FAST_MATH ON)
 add_subdirectory(libraries/glm)
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     GLM_FORCE_RADIANS
@@ -53,6 +59,7 @@ add_subdirectory(libraries/VulkanMemoryAllocator)
 target_link_libraries(${PROJECT_NAME} PRIVATE VulkanMemoryAllocator)
 
 # === FASTGLTF === #
+set(FASTGLTF_COMPILE_AS_CPP20 ON)
 add_subdirectory(libraries/fastgltf)
 target_compile_definitions(${PROJECT_NAME} PRIVATE FASTGLTF_HAS_CONCEPTS)
 target_link_libraries(${PROJECT_NAME} PRIVATE fastgltf)
@@ -68,10 +75,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan)
 
 # === MacOS-specific stuff === #
 if(APPLE)
-    target_compile_definitions(${PROJECT_NAME} PRIVATE
-        GLFW_EXPOSE_NATIVE_COCOA
-        # VK_USE_PLATFORM_MACOS_MVK
-    )
     target_link_libraries(${PROJECT_NAME} PRIVATE
         "-framework Cocoa"
         "-framework IOKit"

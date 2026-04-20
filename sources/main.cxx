@@ -97,17 +97,30 @@ int32_t main() {
     }
     println("found {} device(s)", physical_devices_count);
     for (const auto& [i, device] : enumerate(physical_devices)) {
-        auto device_properties2 =
-            VkPhysicalDeviceProperties2 {.sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2};
+        auto driver_properties = VkPhysicalDeviceDriverProperties {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DRIVER_PROPERTIES,
+        };
+        auto device_properties2 = VkPhysicalDeviceProperties2 {
+            .sType = VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_PROPERTIES_2,
+            .pNext = &driver_properties,
+        };
         vkGetPhysicalDeviceProperties2(device, &device_properties2);
         const auto& properties = device_properties2.properties;
         println("[device #{}]", i);
-        println("ID:             {}", properties.deviceID);
-        println("name:           {}", (const char*)properties.deviceName);
-        println("type:           {}", fmt_vk(properties.deviceType));
-        println("API version:    {}", fmt_vk_api_version(properties.apiVersion));
-        println("driver version: {}", fmt_vk_version(properties.driverVersion));
-        println("vendor ID:      {}", properties.vendorID);
+        println("ID:                  {}", properties.deviceID);
+        println("name:                {}", (const char*)properties.deviceName);
+        println("type:                {}", fmt_vk(properties.deviceType));
+        println("vendor ID:           {}", properties.vendorID);
+        println("API version:         {}", fmt_vk_api_version(properties.apiVersion));
+        println("driver name:         {}", driver_properties.driverName);
+        println("driver version:      {}", fmt_vk_version(properties.driverVersion));
+        println("driver info:         {}", driver_properties.driverInfo);
+        println(
+            "conformance version: {}.{}.{}.{}",
+            driver_properties.conformanceVersion.major,
+            driver_properties.conformanceVersion.minor,
+            driver_properties.conformanceVersion.patch,
+            driver_properties.conformanceVersion.subminor);
     }
     uint32_t physical_device_index = 0;
     println(
@@ -182,14 +195,14 @@ int32_t main() {
     const auto device_extensions = std::array {
         VK_KHR_SWAPCHAIN_EXTENSION_NAME,
         VK_KHR_DEVICE_GROUP_EXTENSION_NAME,
-        VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
-        VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
-        // Dynamic rendering.
-        VK_KHR_MULTIVIEW_EXTENSION_NAME,
-        VK_KHR_MAINTENANCE_2_EXTENSION_NAME,
-        VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
-        VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
-        VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
+        // VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+        // VK_KHR_SYNCHRONIZATION_2_EXTENSION_NAME,
+        // // Dynamic rendering.
+        // VK_KHR_MULTIVIEW_EXTENSION_NAME,
+        // VK_KHR_MAINTENANCE_2_EXTENSION_NAME,
+        // VK_KHR_CREATE_RENDERPASS_2_EXTENSION_NAME,
+        // VK_KHR_DEPTH_STENCIL_RESOLVE_EXTENSION_NAME,
+        // VK_KHR_DYNAMIC_RENDERING_EXTENSION_NAME,
     };
     auto supported_device_extensions = get_supported_device_extensions(physical_device);
     size_t unsupported_device_extension_count = 0;
@@ -239,7 +252,7 @@ int32_t main() {
     /* === Window and Surface === */
 
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // tell GLFW no OpenGL
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);   // no window resizing for now.
+    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);   // no window resizing for now
     GLFWwindow* window = glfwCreateWindow(960, 720, "Vulkan Minimal", nullptr, nullptr);
     if (!window) {
         eprintln("[ERROR] cannot GLFW create window");
@@ -263,7 +276,7 @@ int32_t main() {
     };
     auto supported_surface_formats = get_supported_surface_formats(physical_device, surface);
     auto surface_format_ = std::optional<VkSurfaceFormatKHR>();
-    print("found {} supported surface formats", supported_surface_formats.size());
+    println("found {} supported surface formats", supported_surface_formats.size());
     for (const auto& format : supported_surface_formats) {
         if (surface_format_.has_value())
             continue;
@@ -429,6 +442,8 @@ int32_t main() {
     assert_vk_success(
         vkAllocateCommandBuffers(device, &command_buffer_alloc_info, command_buffers.data()));
 
+    /* === Render Loop === */
+
     uint32_t frame_index = 0;
     uint32_t image_index = 0;
     while (!glfwWindowShouldClose(window)) {
@@ -581,6 +596,27 @@ int32_t main() {
         };
         assert_vk_success(vkQueuePresentKHR(queue, &present_info));
     }
+
+    vkDeviceWaitIdle(device);
+    vkDestroyImageView(device, depth_image_view, nullptr);
+    vmaDestroyImage(allocator, depth_image, depth_image_allocation);
+    for (const auto& fence : frame_fences) {
+        vkDestroyFence(device, fence, nullptr);
+    }
+    for (const auto& semaphore : render_semaphores) {
+        vkDestroySemaphore(device, semaphore, nullptr);
+    }
+    for (const auto& semaphore : present_semaphores) {
+        vkDestroySemaphore(device, semaphore, nullptr);
+    }
+    for (const auto& image_view : swapchain_image_views) {
+        vkDestroyImageView(device, image_view, nullptr);
+    }
+    vkDestroyCommandPool(device, command_pool, nullptr);
+    vkDestroySwapchainKHR(device, swapchain, nullptr);
+    vkDestroySurfaceKHR(instance, surface, nullptr);
+    vkDestroyDevice(device, nullptr);
+    vkDestroyInstance(instance, nullptr);
 
     glfwDestroyWindow(window);
     glfwTerminate();
