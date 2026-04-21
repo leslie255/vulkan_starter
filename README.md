@@ -18,8 +18,20 @@ The code purposefully contains almost zero abstractions, almost all code is cont
 
 ## Building and running
 
+At project's root directory:
+
 ```bash
-$ cmake -S . -B build # also generates a clangd config
-$ make -C build
-$ ./build/vulkan_starter # run
+git submodule update --init --recursive
+cmake -S . -B build
+make -C build
 ```
+
+Run:
+
+```bash
+./build/vulkan_starter
+```
+
+Result:
+
+<img width="50%" alt="Screenshot 2026-04-21 at 20 14 09" src="https://github.com/user-attachments/assets/617fb4f7-8691-4353-ab5b-cd66215cd551" />
