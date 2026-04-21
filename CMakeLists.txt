@@ -59,12 +59,6 @@ target_link_libraries(${PROJECT_NAME} PRIVATE glm)
 add_subdirectory(libraries/VulkanMemoryAllocator)
 target_link_libraries(${PROJECT_NAME} PRIVATE VulkanMemoryAllocator)
 
-# === FASTGLTF === #
-set(FASTGLTF_COMPILE_AS_CPP20 ON)
-add_subdirectory(libraries/fastgltf)
-target_compile_definitions(${PROJECT_NAME} PRIVATE FASTGLTF_HAS_CONCEPTS)
-target_link_libraries(${PROJECT_NAME} PRIVATE fastgltf)
-
 # === VOLK === #
 add_subdirectory(libraries/volk)
 target_link_libraries(${PROJECT_NAME} PRIVATE volk)
@@ -136,4 +130,3 @@ if(APPLE)
         "-framework UniformTypeIdentifiers"
     )
 endif()
-

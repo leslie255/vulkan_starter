@@ -4,9 +4,6 @@
 [submodule "libraries/glfw"]
 	path = libraries/glfw
 	url = https://github.com/glfw/glfw.git
-[submodule "libraries/fastgltf"]
-	path = libraries/fastgltf
-	url = https://github.com/spnda/fastgltf.git
 [submodule "libraries/VulkanMemoryAllocator"]
 	path = libraries/VulkanMemoryAllocator
 	url = https://github.com/GPUOpen-LibrariesAndSDKs/VulkanMemoryAllocator.git
