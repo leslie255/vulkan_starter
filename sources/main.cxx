@@ -559,8 +559,15 @@ int32_t main() {
     bool swapchain_needs_update = false;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        uint32_t new_window_width;
+        uint32_t new_window_height;
+        glfwGetFramebufferSize(window, (int32_t*)&new_window_width, (int32_t*)&new_window_height);
+        if (new_window_width != window_width && new_window_height != window_height) {
+            window_width = new_window_width;
+            window_height = new_window_height;
+            swapchain_needs_update = true;
+        }
         if (swapchain_needs_update) {
-            glfwGetFramebufferSize(window, (int32_t*)&window_width, (int32_t*)&window_height);
             println("window size: {}x{}", window_width, window_height);
             swapchain_needs_update = false;
             assert_vk_success(vkDeviceWaitIdle(device));
