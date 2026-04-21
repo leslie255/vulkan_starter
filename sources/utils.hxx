@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <fstream>
 #include <iostream>
 #include <source_location>
 #include <string_view>
@@ -11,6 +12,8 @@
 void assert_vk_success(
     VkResult result,
     std::source_location location = std::source_location::current());
+
+std::vector<uint8_t> read_file_to_bytes(std::string_view path);
 
 /// Similar to C++32's `std::ranges::enumerate_view`.
 /// Turns iterator into [index, value] pairs.
