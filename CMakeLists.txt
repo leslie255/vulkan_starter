@@ -16,6 +16,12 @@ include_directories(
     $ENV{VULKAN_SDK}/include
 )
 
+# Global flags.
+add_compile_options("-O${OPT_LEVEL}")
+add_compile_options("-g")
+add_compile_options("-fno-exceptions")
+add_compile_options("-fmacro-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}/=")
+
 set(SOURCES
     sources/main.cxx
     sources/utils.cxx
@@ -23,12 +29,6 @@ set(SOURCES
 )
 
 add_executable(${PROJECT_NAME} ${SOURCES})
-
-# Global flags.
-add_compile_options("-O${OPT_LEVEL}")
-add_compile_options("-g")
-add_compile_options("-fno-exceptions")
-add_compile_options("-fmacro-prefix-map=${CMAKE_CURRENT_SOURCE_DIR}/=")
 
 # Project-local flags.
 target_compile_options(${PROJECT_NAME} PRIVATE

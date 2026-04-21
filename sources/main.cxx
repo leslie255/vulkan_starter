@@ -250,8 +250,7 @@ int32_t main() {
 
     /* === Window and Surface === */
 
-    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // tell GLFW no OpenGL
-    glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);   // no window resizing for now
+    glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API); // no OpenGL
     GLFWwindow* window = glfwCreateWindow(960, 720, "Vulkan Minimal", nullptr, nullptr);
     if (!window) {
         eprintln("[ERROR] cannot GLFW create window");
@@ -556,19 +555,102 @@ int32_t main() {
 
     uint32_t frame_index = 0;
     uint32_t image_index = 0;
+    bool swapchain_needs_update = false;
     while (!glfwWindowShouldClose(window)) {
         glfwPollEvents();
+        if (swapchain_needs_update) {
+            glfwGetFramebufferSize(window, (int32_t*)&window_width, (int32_t*)&window_height);
+            println("window size: {}x{}", window_width, window_height);
+            swapchain_needs_update = false;
+            assert_vk_success(vkDeviceWaitIdle(device));
+            assert_vk_success(vkGetPhysicalDeviceSurfaceCapabilitiesKHR(
+                physical_device,
+                surface,
+                &surface_capabilities));
+            swapchain_ci.oldSwapchain = swapchain;
+            swapchain_ci.imageExtent = {
+                .width = window_width,
+                .height = window_height,
+            };
+            assert_vk_success(vkCreateSwapchainKHR(device, &swapchain_ci, nullptr, &swapchain));
+            for (const auto& image_view : swapchain_image_views) {
+                vkDestroyImageView(device, image_view, nullptr);
+            }
+            assert_vk_success(
+                vkGetSwapchainImagesKHR(device, swapchain, &swapchain_image_count, nullptr));
+            swapchain_images.resize(swapchain_image_count);
+            assert_vk_success(vkGetSwapchainImagesKHR(
+                device,
+                swapchain,
+                &swapchain_image_count,
+                swapchain_images.data()));
+            swapchain_image_views.resize(swapchain_image_count);
+            for (const auto& [i, image] : enumerate(swapchain_images)) {
+                auto image_view_ci = VkImageViewCreateInfo {
+                    .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                    .image = image,
+                    .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                    .format = surface_format.format,
+                    .subresourceRange =
+                        {.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT, .levelCount = 1, .layerCount = 1},
+                };
+                assert_vk_success(
+                    vkCreateImageView(device, &image_view_ci, nullptr, &swapchain_image_views[i]));
+            }
+            vkDestroySwapchainKHR(device, swapchain_ci.oldSwapchain, nullptr);
+            vmaDestroyImage(allocator, depth_image, depth_image_allocation);
+            vkDestroyImageView(device, depth_image_view, nullptr);
+            depth_image_ci.extent = {
+                .width = window_width,
+                .height = window_height,
+                .depth = 1,
+            };
+            auto alloc_ci = VmaAllocationCreateInfo {
+                .flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT,
+                .usage = VMA_MEMORY_USAGE_AUTO,
+            };
+            assert_vk_success(vmaCreateImage(
+                allocator,
+                &depth_image_ci,
+                &alloc_ci,
+                &depth_image,
+                &depth_image_allocation,
+                nullptr));
+            auto viewCI = VkImageViewCreateInfo {
+                .sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO,
+                .image = depth_image,
+                .viewType = VK_IMAGE_VIEW_TYPE_2D,
+                .format = depth_format,
+                .subresourceRange =
+                    {
+                        .aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT,
+                        .levelCount = 1,
+                        .layerCount = 1,
+                    },
+            };
+            assert_vk_success(vkCreateImageView(device, &viewCI, nullptr, &depth_image_view));
+        }
 
         assert_vk_success(vkWaitForFences(device, 1, &frame_fences[frame_index], true, UINT64_MAX));
         assert_vk_success(vkResetFences(device, 1, &frame_fences[frame_index]));
-        // FIXME: re-create image if outdated.
-        assert_vk_success(vkAcquireNextImageKHR(
+        VkResult acquire_next_image_result = vkAcquireNextImageKHR(
             device,
             swapchain,
             UINT64_MAX,
             present_semaphores[frame_index],
             VK_NULL_HANDLE,
-            &image_index));
+            &image_index);
+        switch (acquire_next_image_result) {
+        case VK_SUCCESS: break;
+        case VK_ERROR_OUT_OF_DATE_KHR:
+        case VK_SUBOPTIMAL_KHR: {
+            swapchain_needs_update = true;
+        } break;
+        default:
+            eprintln(
+                "error acquiring swapchain image for a frame: {}",
+                fmt_vk(acquire_next_image_result));
+        }
         auto command_buffer = command_buffers[frame_index];
         assert_vk_success(vkResetCommandBuffer(command_buffer, 0));
         VkCommandBufferBeginInfo command_buffer_begin_info {
@@ -720,7 +802,16 @@ int32_t main() {
             .pSwapchains = &swapchain,
             .pImageIndices = &image_index,
         };
-        assert_vk_success(vkQueuePresentKHR(queue, &present_info));
+        VkResult present_result = vkQueuePresentKHR(queue, &present_info);
+        switch (present_result) {
+        case VK_SUCCESS: break;
+        case VK_ERROR_OUT_OF_DATE_KHR:
+        case VK_SUBOPTIMAL_KHR: {
+            swapchain_needs_update = true;
+        } break;
+        default:
+            eprintln("error presenting a swapchain image for a frame: {}", fmt_vk(present_result));
+        }
     }
 
     /* === Cleanup === */
