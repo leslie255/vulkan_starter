@@ -1,9 +1,10 @@
 cmake_minimum_required(VERSION 3.21)
-project(vulkan_starter VERSION 1.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
+
+project(vulkan_starter VERSION 0.0.0 LANGUAGES CXX)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -73,6 +74,45 @@ find_package(Vulkan REQUIRED)
 target_compile_definitions(${PROJECT_NAME} PRIVATE VK_NO_PROTOTYPES)
 target_link_libraries(${PROJECT_NAME} PRIVATE Vulkan::Vulkan)
 
+# === Shaders Target === #
+set(SHADERS
+    the_shader.slang
+)
+
+set(SHADER_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sources/shaders")
+set(SHADER_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/assets/shaders")
+
+foreach(shader ${SHADERS})
+    get_filename_component(shader_name ${shader} NAME)
+    get_filename_component(shader_ext ${shader} EXT)
+
+    set(src "${SHADER_SRC_DIR}/${shader_name}")
+    set(out "${SHADER_OUT_DIR}/${shader_name}.spv")
+
+    # Automatically selects `slangc` or `glslc` depending on file extension.
+    if(shader_ext STREQUAL ".slang")
+        set(SHADER_COMPILER slangc)
+    elseif(shader_ext STREQUAL ".vert" OR shader_ext STREQUAL ".frag" OR shader_ext STREQUAL ".comp")
+        set(SHADER_COMPILER glslc)
+    else()
+        message(FATAL_ERROR "Unknown file extension for shader: ${shader} (.vert/.frag/.comp for GLSL, .slang for Slang)")
+    endif()
+
+    add_custom_command(
+        OUTPUT ${out}
+        COMMAND ${SHADER_COMPILER} ${src} -o ${out}
+        DEPENDS ${src}
+        COMMENT "Compiling SPIR-V binary ${shader_name} from Slang"
+        VERBATIM
+    )
+
+    list(APPEND SPIRV_SHADERS ${out})
+endforeach()
+
+add_custom_target(shaders ALL
+    DEPENDS ${SPIRV_SHADERS}
+)
+
 # === MacOS-specific stuff === #
 if(APPLE)
     target_link_libraries(${PROJECT_NAME} PRIVATE
@@ -97,30 +137,3 @@ if(APPLE)
     )
 endif()
 
-# set(SHADERS
-#     test.vert
-#     test.frag
-# )
-# 
-# set(SHADER_SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}/sources/shaders")
-# set(SHADER_OUT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/resources/shaders")
-# 
-# foreach(shader ${SHADERS})
-#     get_filename_component(shader_name ${shader} NAME)
-#     set(src "${SHADER_SRC_DIR}/${shader_name}")
-#     set(out "${SHADER_OUT_DIR}/${shader_name}.spv")
-# 
-#     add_custom_command(
-#         OUTPUT ${out}
-#         COMMAND glslc ${src} -o ${out}
-#         DEPENDS ${src}
-#         COMMENT "Compiling shader ${shader_name} -> ${shader_name}.spv"
-#         VERBATIM
-#     )
-# 
-#     list(APPEND SPIRV_SHADERS ${out})
-# endforeach()
-# 
-# add_custom_target(shaders ALL
-#     DEPENDS ${SPIRV_SHADERS}
-# )

@@ -6,7 +6,6 @@
 #include <vulkan/vulkan.h>
 #include <vulkan/vulkan_beta.h>
 
-#include "print.hxx"
 #include "utils.hxx"
 #include "vk_fmt.hxx"
 
@@ -61,7 +60,7 @@ int32_t main() {
 
     assert_vk_success(volkInitialize());
 
-    /* === Vulkan instance === */
+    /* === Instance === */
 
     auto appInfo = VkApplicationInfo {
         .sType = VK_STRUCTURE_TYPE_APPLICATION_INFO,

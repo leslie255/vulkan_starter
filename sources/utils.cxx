@@ -1,6 +1,5 @@
 #include "utils.hxx"
 
-#include "print.hxx"
 #include "vk_fmt.hxx"
 
 void assert_vk_success(VkResult result, std::source_location location) {
