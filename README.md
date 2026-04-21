@@ -11,10 +11,10 @@ The code purposefully contains almost zero abstractions, almost all code is cont
 ## Opinionated parts
 
 - build system: Cmake
-- programming language: C++20 with Clang and `-fno-exceptions`
-- Vulkan: LunarG's Vulkan SDK
 - windowing: GLFW
-- maths library: GLM.
+- programming language: C++20 with Clang and `-fno-exceptions`
+- meta loader for Vulkan: Volk
+- Vulkan: LunarG's Vulkan SDK
 
 ## Building and running
 

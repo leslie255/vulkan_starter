@@ -44,17 +44,6 @@ add_subdirectory(libraries/glfw)
 target_compile_definitions(${PROJECT_NAME} PRIVATE GLFW_INCLUDE_VULKAN)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)
 
-# === GLM === #
-set(GLM_ENABLE_CXX_20 ON)
-set(GLM_ENABLE_LANG_EXTENSIONS ON)
-set(GLM_ENABLE_FAST_MATH ON)
-add_subdirectory(libraries/glm)
-target_compile_definitions(${PROJECT_NAME} PRIVATE
-    GLM_FORCE_RADIANS
-    GLM_FORCE_DEPTH_ZERO_TO_ONE
-)
-target_link_libraries(${PROJECT_NAME} PRIVATE glm)
-
 # === VMA === #
 add_subdirectory(libraries/VulkanMemoryAllocator)
 target_link_libraries(${PROJECT_NAME} PRIVATE VulkanMemoryAllocator)
