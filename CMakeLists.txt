@@ -32,7 +32,11 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 
 # Project-local flags.
 target_compile_options(${PROJECT_NAME} PRIVATE
-    -Wall -Wextra -Wconversion -Wno-missing-designated-field-initializers
+    "-Wall"
+    "-Wextra"
+    "-Wconversion"
+    "-Wno-missing-designated-field-initializers"
+    "-Wno-missing-field-initializers"
 )
 
 # === GLFW === #
@@ -40,6 +44,11 @@ set(GLFW_BUILD_EXAMPLES OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_TESTS OFF CACHE BOOL "" FORCE)
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "" FORCE)
 set(GLFW_INSTALL OFF CACHE BOOL "" FORCE)
+# GLFW platform override options:
+# set(GLFW_BUILD_WIN32   OFF CACHE BOOL "" FORCE)
+# set(GLFW_BUILD_COCOA   OFF CACHE BOOL "" FORCE)
+# set(GLFW_BUILD_X11     OFF CACHE BOOL "" FORCE)
+# set(GLFW_BUILD_WAYLAND OFF CACHE BOOL "" FORCE)
 add_subdirectory(libraries/glfw)
 target_compile_definitions(${PROJECT_NAME} PRIVATE GLFW_INCLUDE_VULKAN)
 target_link_libraries(${PROJECT_NAME} PRIVATE glfw)

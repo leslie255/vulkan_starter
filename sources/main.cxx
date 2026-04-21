@@ -1,5 +1,6 @@
 #include <GLFW/glfw3.h>
 #include <cstdint>
+#include <vector>
 #include <set>
 #include <vk_mem_alloc.h>
 #include <volk.h>
@@ -50,7 +51,7 @@ std::vector<VkSurfaceFormatKHR> get_supported_surface_formats(
     return formats;
 }
 
-const size_t DESIRED_FRAMES_IN_FLIGHT = 3;
+const uint32_t DESIRED_FRAMES_IN_FLIGHT = 3;
 
 int32_t main() {
     if (!glfwInit()) {
@@ -408,7 +409,7 @@ int32_t main() {
         .sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO,
         .flags = VK_FENCE_CREATE_SIGNALED_BIT,
     };
-    auto frames_in_flight = std::min<size_t>(DESIRED_FRAMES_IN_FLIGHT, swapchain_images.size());
+    uint32_t frames_in_flight = std::min<uint32_t>(DESIRED_FRAMES_IN_FLIGHT, (uint32_t)swapchain_images.size());
     println("frames in flight: {}", frames_in_flight);
     auto frame_fences = std::vector<VkFence>(frames_in_flight);
     auto present_semaphores = std::vector<VkSemaphore>(frames_in_flight);

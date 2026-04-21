@@ -12,7 +12,7 @@ The code purposefully contains almost zero abstractions, almost all code is cont
 
 - build system: Cmake
 - windowing: GLFW
-- programming language: C++20 with Clang and `-fno-exceptions`
+- programming language: C++20 with Clang/GCC and `-fno-exceptions`
 - meta loader for Vulkan: Volk
 - Vulkan: LunarG's Vulkan SDK
 

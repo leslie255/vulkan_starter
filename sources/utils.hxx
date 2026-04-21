@@ -6,6 +6,7 @@
 #include <source_location>
 #include <string_view>
 #include <type_traits>
+#include <vector>
 
 #include <vulkan/vulkan.h>
 
